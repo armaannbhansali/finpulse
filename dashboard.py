@@ -1,7 +1,6 @@
 from algo1 import create_table, fetch_and_store
 import sqlite3
 import streamlit as st
-import sqlite3
 import pandas as pd
 import plotly.graph_objects as go
 import yfinance as yf
@@ -29,14 +28,23 @@ st.subheader("Market Overview")
 st.dataframe(df[["ticker", "company_name", "price", "market_cap", "pe_ratio", "eps"]], use_container_width=True)
 
 # --- Company selector + historical chart ---
+# --- Company selector + historical chart ---
 st.subheader("Historical Price Chart")
 selected_ticker = st.selectbox("Select a company", df["ticker"])
-
 period = st.select_slider("Time period", options=["1mo", "3mo", "6mo", "1y", "5y"], value="6mo")
+chart_type = st.radio("Chart type", ["Line", "Candlestick"], horizontal=True)
 hist = yf.Ticker(selected_ticker).history(period=period)
 
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=hist.index, y=hist["Close"], mode="lines", name=selected_ticker))
+if chart_type == "Line":
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=hist.index, y=hist["Close"], mode="lines", name=selected_ticker))
+else:
+    fig = go.Figure(data=[go.Candlestick(
+        x=hist.index,
+        open=hist["Open"], high=hist["High"],
+        low=hist["Low"], close=hist["Close"]
+    )])
+
 fig.update_layout(xaxis_title="Date", yaxis_title="Price (₹)")
 st.plotly_chart(fig, use_container_width=True)
 
